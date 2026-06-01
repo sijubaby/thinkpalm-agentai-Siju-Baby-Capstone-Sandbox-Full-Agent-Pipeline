@@ -1,0 +1,63 @@
+{
+  "openapi": "3.0.3",
+  "info": {
+    "title": "Maritime QA Agent API",
+    "version": "1.0.0",
+    "description": "Agentic maritime test automation: feature description → Gherkin, Playwright, coverage report."
+  },
+  "servers": [{ "url": "http://127.0.0.1:8765" }],
+  "paths": {
+    "/api/v1/health": {
+      "get": {
+        "summary": "Health check",
+        "responses": { "200": { "description": "OK" } }
+      }
+    },
+    "/api/v1/samples": {
+      "get": {
+        "summary": "List sample feature descriptions",
+        "responses": { "200": { "description": "Sample texts" } }
+      }
+    },
+    "/api/v1/pipeline/run": {
+      "post": {
+        "summary": "Run the full agent pipeline",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["description"],
+                "properties": {
+                  "description": { "type": "string" },
+                  "domain": {
+                    "type": "string",
+                    "enum": ["auto", "crew-cert", "ais", "port-workflow"]
+                  },
+                  "run_playwright": { "type": "boolean", "default": false },
+                  "use_llm": { "type": "boolean", "default": false }
+                }
+              }
+            }
+          }
+        },
+        "responses": { "200": { "description": "Pipeline result" } }
+      }
+    },
+    "/api/v1/runs/{run_id}": {
+      "get": {
+        "summary": "Get a previous run",
+        "parameters": [
+          {
+            "name": "run_id",
+            "in": "path",
+            "required": true,
+            "schema": { "type": "string" }
+          }
+        ],
+        "responses": { "200": { "description": "Run metadata" } }
+      }
+    }
+  }
+}
