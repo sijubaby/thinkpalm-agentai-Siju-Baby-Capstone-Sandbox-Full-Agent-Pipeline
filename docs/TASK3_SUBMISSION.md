@@ -29,7 +29,7 @@
 
 ---
 
-## Mini project deliverables
+## Deliverables
 
 | Deliverable | Location |
 |-------------|----------|
