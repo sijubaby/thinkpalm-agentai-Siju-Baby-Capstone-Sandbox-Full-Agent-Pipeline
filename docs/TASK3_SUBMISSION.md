@@ -1,4 +1,4 @@
-# Task 3 + Mini Project — Submission Guide
+# Task 3
 
 **Project:** Maritime QA Agent (Python)  
 **Track:** ThinkPalm maritime software QA  
