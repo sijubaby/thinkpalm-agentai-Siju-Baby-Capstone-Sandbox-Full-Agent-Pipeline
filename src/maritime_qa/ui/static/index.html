@@ -1,0 +1,844 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <title>Maritime QA — Agentic Test Automation</title>
+  <style>
+    :root {
+      --navy: #0b1f3f;
+      --navy-mid: #12325c;
+      --bg: #eef2f7;
+      --card: #ffffff;
+      --border: #dde4ee;
+      --text: #1e293b;
+      --muted: #64748b;
+      --accent: #1a6fd4;
+      --accent-dark: #1456a8;
+      --ok: #16a34a;
+      --ok-bg: #dcfce7;
+      --proc: #2563eb;
+      --proc-bg: #dbeafe;
+      --danger: #dc2626;
+      --sidebar-w: 248px;
+      --history-w: 320px;
+      --header-h: 72px;
+      --footer-h: 36px;
+    }
+    * { box-sizing: border-box; }
+    html, body {
+      margin: 0;
+      height: 100%;
+    }
+    body {
+      font-family: "Segoe UI", system-ui, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+    /* Header */
+    .site-header {
+      flex-shrink: 0;
+      background: var(--navy);
+      color: #fff;
+      padding: 0.85rem 1.5rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 1rem;
+    }
+    .brand-block { display: flex; align-items: center; gap: 0.85rem; }
+    .brand-icon {
+      width: 44px; height: 44px;
+      background: rgba(255,255,255,0.12);
+      border-radius: 10px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 1.35rem;
+    }
+    .brand-block h1 { margin: 0; font-size: 1.35rem; font-weight: 700; }
+    .brand-block .tagline { margin: 0; font-size: 0.8rem; color: rgba(255,255,255,0.8); }
+    .header-desc {
+      font-size: 0.78rem;
+      color: rgba(255,255,255,0.75);
+      max-width: 520px;
+      line-height: 1.4;
+      text-align: right;
+    }
+    /* Body */
+    .app-body {
+      flex: 1;
+      display: flex;
+      min-height: 0;
+    }
+    /* Left workflow sidebar */
+    .workflow-sidebar {
+      width: var(--sidebar-w);
+      flex-shrink: 0;
+      background: var(--navy);
+      color: #e2e8f0;
+      display: flex;
+      flex-direction: column;
+      padding: 1rem 0.9rem;
+    }
+    .workflow-sidebar h2 {
+      margin: 0 0 0.85rem;
+      font-size: 0.68rem;
+      letter-spacing: 0.08em;
+      color: rgba(255,255,255,0.55);
+      font-weight: 700;
+    }
+    .agent-step {
+      display: flex;
+      align-items: flex-start;
+      gap: 0.55rem;
+      padding: 0.5rem 0;
+      font-size: 0.78rem;
+      color: rgba(255,255,255,0.65);
+    }
+    .agent-step .circle {
+      width: 22px; height: 22px;
+      border-radius: 50%;
+      border: 2px solid rgba(255,255,255,0.25);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 0.65rem;
+      flex-shrink: 0;
+    }
+    .agent-step.done { color: #fff; }
+    .agent-step.done .circle {
+      background: var(--ok);
+      border-color: var(--ok);
+      color: #fff;
+    }
+    .agent-step.running { color: #fff; }
+    .agent-step.running .circle {
+      border-color: #60a5fa;
+      box-shadow: 0 0 0 2px rgba(96,165,250,0.4);
+      animation: pulse 1.2s infinite;
+    }
+    .agent-step .status {
+      font-size: 0.65rem;
+      color: var(--ok);
+      margin-top: 0.1rem;
+    }
+    @keyframes pulse { 50% { opacity: 0.45; } }
+    .about-card {
+      margin-top: auto;
+      background: rgba(255,255,255,0.06);
+      border: 1px solid rgba(255,255,255,0.1);
+      border-radius: 10px;
+      padding: 0.75rem;
+      font-size: 0.72rem;
+      line-height: 1.45;
+      color: rgba(255,255,255,0.55);
+    }
+    .about-card .ship { font-size: 1.5rem; margin-bottom: 0.35rem; }
+    /* Main */
+    .main-col {
+      flex: 1;
+      min-width: 0;
+      overflow-y: auto;
+      padding: 1rem 1.25rem;
+    }
+    .card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      box-shadow: 0 2px 8px rgba(15,23,42,0.05);
+      margin-bottom: 1rem;
+      overflow: hidden;
+    }
+    .card-head {
+      padding: 0.75rem 1.1rem;
+      border-bottom: 1px solid var(--border);
+      font-size: 0.72rem;
+      font-weight: 700;
+      letter-spacing: 0.06em;
+      color: var(--muted);
+    }
+    .card-body { padding: 1rem 1.1rem 1.1rem; }
+    textarea#description {
+      width: 100%;
+      min-height: 130px;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 0.85rem 1rem;
+      font-family: inherit;
+      font-size: 0.9rem;
+      line-height: 1.55;
+      resize: vertical;
+      background: #fafbfc;
+    }
+    textarea#description:focus {
+      outline: none;
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px rgba(26,111,212,0.15);
+      background: #fff;
+    }
+    .desc-footer {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-top: 0.5rem;
+      font-size: 0.75rem;
+      color: var(--muted);
+    }
+    .desc-footer.over { color: var(--danger); }
+    .btn-run {
+      display: block;
+      width: 100%;
+      max-width: 280px;
+      margin: 1rem auto 0;
+      padding: 0.8rem 1.25rem;
+      background: linear-gradient(180deg, #2b7de9, var(--accent));
+      color: #fff;
+      border: none;
+      border-radius: 10px;
+      font-size: 0.95rem;
+      font-weight: 700;
+      letter-spacing: 0.03em;
+      cursor: pointer;
+      box-shadow: 0 4px 12px rgba(26,111,212,0.35);
+    }
+    .btn-run:hover:not(:disabled) { background: var(--accent-dark); }
+    .btn-run:disabled { opacity: 0.65; cursor: wait; }
+  /* Tabs */
+    .output-tabs {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.25rem;
+      padding: 0.65rem 1rem 0;
+      border-bottom: 1px solid var(--border);
+      background: #f8fafc;
+    }
+    .output-tabs button {
+      padding: 0.45rem 0.75rem;
+      border: none;
+      background: transparent;
+      border-radius: 8px 8px 0 0;
+      font-size: 0.78rem;
+      color: var(--muted);
+      cursor: pointer;
+      border-bottom: 2px solid transparent;
+      margin-bottom: -1px;
+    }
+    .output-tabs button.active {
+      color: var(--accent);
+      background: var(--card);
+      border-bottom-color: var(--accent);
+      font-weight: 600;
+    }
+    .tab-panel { display: none; padding: 1rem 1.1rem 1.25rem; }
+    .tab-panel.active { display: block; }
+    .grid-5 {
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+      gap: 0.65rem;
+    }
+    @media (max-width: 1200px) { .grid-5 { grid-template-columns: repeat(2, 1fr); } }
+    .mini-card {
+      border-radius: 10px;
+      padding: 0.7rem;
+      font-size: 0.75rem;
+      min-height: 180px;
+      max-height: 240px;
+      overflow: auto;
+      border: 1px solid var(--border);
+    }
+    .mini-card h4 {
+      margin: 0 0 0.5rem;
+      font-size: 0.68rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+    }
+    .mini-req { background: #f0f7ff; }
+    .mini-gherkin { background: #ecfdf5; }
+    .mini-pw { background: #eff6ff; }
+    .mini-cov { background: #fef2f2; }
+    .mini-comp { background: #f5f3ff; }
+    .req-row { display: flex; gap: 0.35rem; margin: 0.3rem 0; align-items: flex-start; }
+    .req-row .ico { color: var(--accent); }
+    pre.code {
+      font-family: Consolas, monospace;
+      font-size: 0.68rem;
+      white-space: pre-wrap;
+      word-break: break-word;
+      margin: 0;
+      line-height: 1.4;
+    }
+    .donut {
+      width: 72px; height: 72px;
+      border-radius: 50%;
+      margin: 0.25rem auto;
+      display: flex; align-items: center; justify-content: center;
+      position: relative;
+      background: #fff;
+    }
+    .donut::before {
+      content: "";
+      position: absolute; inset: 0;
+      border-radius: 50%;
+      background: conic-gradient(var(--ok) 0deg, var(--ok) calc(var(--pct,0) * 3.6deg), #e2e8f0 calc(var(--pct,0) * 3.6deg));
+    }
+    .donut span {
+      position: relative; z-index: 1;
+      background: #fff; width: 48px; height: 48px;
+      border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-weight: 700; font-size: 0.85rem; color: var(--ok);
+    }
+    .stat-line { font-size: 0.7rem; margin: 0.15rem 0; color: var(--muted); }
+    .btn-link {
+      display: inline-block;
+      margin-top: 0.5rem;
+      padding: 0.35rem 0.6rem;
+      font-size: 0.68rem;
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      cursor: pointer;
+      color: var(--accent);
+    }
+    .comp-row { display: flex; gap: 0.3rem; margin: 0.25rem 0; font-size: 0.7rem; }
+    .report-frame {
+      width: 100%;
+      height: 420px;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      background: #fff;
+    }
+    pre.full { font-family: Consolas, monospace; font-size: 0.8rem; white-space: pre-wrap; max-height: 420px; overflow: auto; background: #f8fafc; padding: 1rem; border-radius: 8px; border: 1px solid var(--border); margin: 0; }
+    .log-grid { display: flex; flex-wrap: wrap; gap: 0.45rem; }
+    .log-chip {
+      background: #f1f5f9;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 0.4rem 0.65rem;
+      font-size: 0.72rem;
+    }
+    .log-chip strong { color: var(--accent); }
+    .empty-state { text-align: center; color: var(--muted); padding: 2.5rem 1rem; font-size: 0.9rem; }
+    #resultsSection { display: none; }
+    #resultsSection.visible { display: block; }
+    /* History */
+    .history-panel {
+      width: var(--history-w);
+      flex-shrink: 0;
+      background: var(--card);
+      border-left: 1px solid var(--border);
+      display: flex;
+      flex-direction: column;
+      min-height: 0;
+    }
+    .history-head {
+      padding: 1rem 1rem 0.75rem;
+      border-bottom: 1px solid var(--border);
+      flex-shrink: 0;
+    }
+    .history-head h2 { margin: 0; font-size: 0.85rem; font-weight: 700; letter-spacing: 0.05em; }
+    .search-wrap {
+      margin-top: 0.65rem;
+      position: relative;
+    }
+    .search-wrap input {
+      width: 100%;
+      padding: 0.5rem 0.65rem 0.5rem 2rem;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      font-size: 0.82rem;
+    }
+    .search-wrap::before {
+      content: "🔍";
+      position: absolute;
+      left: 0.55rem;
+      top: 50%;
+      transform: translateY(-50%);
+      font-size: 0.75rem;
+      opacity: 0.5;
+    }
+    #historyList {
+      flex: 1;
+      overflow-y: auto;
+      padding: 0.65rem;
+      min-height: 0;
+    }
+    .hist-card {
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 0.7rem 0.75rem;
+      margin-bottom: 0.55rem;
+      cursor: pointer;
+      position: relative;
+      transition: border-color 0.15s, box-shadow 0.15s;
+    }
+    .hist-card:hover { border-color: #93c5fd; box-shadow: 0 2px 6px rgba(15,23,42,0.06); }
+    .hist-card.selected { border-color: var(--accent); background: #f0f7ff; }
+    .hist-card h3 { margin: 0 0 0.35rem; font-size: 0.82rem; padding-right: 1.5rem; }
+    .badge {
+      display: inline-block;
+      font-size: 0.62rem;
+      font-weight: 600;
+      padding: 0.15rem 0.45rem;
+      border-radius: 999px;
+      text-transform: uppercase;
+      letter-spacing: 0.03em;
+    }
+    .badge.completed { background: var(--ok-bg); color: var(--ok); }
+    .badge.processing { background: var(--proc-bg); color: var(--proc); }
+    .hist-time { font-size: 0.68rem; color: var(--muted); margin-top: 0.35rem; }
+    .hist-del {
+      position: absolute;
+      top: 0.55rem; right: 0.5rem;
+      background: none;
+      border: none;
+      cursor: pointer;
+      opacity: 0.4;
+      font-size: 0.9rem;
+      padding: 0.15rem;
+    }
+    .hist-del:hover { opacity: 1; color: var(--danger); }
+    .history-foot {
+      padding: 0.65rem 1rem 1rem;
+      border-top: 1px solid var(--border);
+      flex-shrink: 0;
+    }
+    .btn-clear {
+      width: 100%;
+      padding: 0.55rem;
+      background: #fff;
+      border: 1px solid #fecaca;
+      color: var(--danger);
+      border-radius: 8px;
+      font-size: 0.8rem;
+      cursor: pointer;
+    }
+    .btn-clear:hover { background: #fef2f2; }
+    .site-footer {
+      flex-shrink: 0;
+      text-align: center;
+      padding: 0.5rem;
+      font-size: 0.72rem;
+      color: var(--muted);
+      background: var(--card);
+      border-top: 1px solid var(--border);
+    }
+    #serverBanner {
+      display: none;
+      background: #fef2f2;
+      color: #991b1b;
+      padding: 0.65rem 1rem;
+      border-radius: 8px;
+      margin-bottom: 1rem;
+      font-size: 0.85rem;
+      border: 1px solid #fecaca;
+    }
+    .gap-line { color: var(--danger); font-size: 0.78rem; margin: 0.2rem 0; }
+  </style>
+</head>
+<body>
+  <header class="site-header">
+    <div class="brand-block">
+      <div class="brand-icon">⚓</div>
+      <div>
+        <h1>Maritime QA</h1>
+        <p class="tagline">Agentic Test Automation Assistant</p>
+      </div>
+    </div>
+    <p class="header-desc">
+      AI-Powered Test Case Generation, Automation Script Creation, Coverage Analysis &amp;
+      Compliance Validation for Maritime Systems
+    </p>
+  </header>
+
+  <div class="app-body">
+    <aside class="workflow-sidebar">
+      <h2>AGENT WORKFLOW</h2>
+      <div class="agent-step" id="step-1"><span class="circle">1</span><div><div>Requirement Analysis Agent</div><div class="status" data-done>Completed</div></div></div>
+      <div class="agent-step" id="step-2"><span class="circle">2</span><div><div>BDD Test Generation Agent</div><div class="status" data-done>Completed</div></div></div>
+      <div class="agent-step" id="step-3"><span class="circle">3</span><div><div>Playwright Script Agent</div><div class="status" data-done>Completed</div></div></div>
+      <div class="agent-step" id="step-4"><span class="circle">4</span><div><div>Coverage &amp; Compliance Agent</div><div class="status" data-done>Completed</div></div></div>
+      <div class="about-card">
+        <div class="ship">🚢</div>
+        Multi-agent AI pipeline for maritime QA — requirements, Gherkin BDD, Playwright automation, and compliance gap analysis.
+      </div>
+    </aside>
+
+    <main class="main-col">
+      <div id="serverBanner"></div>
+
+      <section class="card">
+        <div class="card-head">FEATURE DESCRIPTION</div>
+        <div class="card-body">
+          <textarea id="description" maxlength="2000" placeholder="Describe your maritime feature: business rules, notifications, edge cases, compliance…"></textarea>
+          <div class="desc-footer">
+            <span id="charCount">0 / 2000 characters</span>
+          </div>
+          <button type="button" class="btn-run" id="runBtn">🚀 RUN PIPELINE</button>
+        </div>
+      </section>
+
+      <section class="card" id="resultsSection">
+        <div class="card-head">GENERATED OUTPUTS</div>
+        <div class="output-tabs" id="tabs">
+          <button type="button" data-tab="requirements" class="active">Requirements</button>
+          <button type="button" data-tab="gherkin">Gherkin Tests</button>
+          <button type="button" data-tab="playwright">Playwright Scripts</button>
+          <button type="button" data-tab="coverage">Coverage Report</button>
+          <button type="button" data-tab="compliance">Compliance Report</button>
+          <button type="button" data-tab="logs">Execution Logs</button>
+        </div>
+
+        <div id="tab-requirements" class="tab-panel active">
+          <div class="grid-5" id="overviewGrid">
+            <div class="mini-card mini-req"><h4>Extracted Requirements</h4><div id="ovReqs"></div></div>
+            <div class="mini-card mini-gherkin"><h4>Sample Gherkin Scenario</h4><pre class="code" id="ovGherkin"></pre></div>
+            <div class="mini-card mini-pw"><h4>Sample Playwright Script</h4><pre class="code" id="ovPw"></pre></div>
+            <div class="mini-card mini-cov"><h4>Coverage Summary</h4><div id="ovCov"></div></div>
+            <div class="mini-card mini-comp"><h4>Compliance Summary</h4><div id="ovComp"></div></div>
+          </div>
+          <div class="empty-state" id="reqEmpty">Run the pipeline to generate outputs.</div>
+        </div>
+        <div id="tab-gherkin" class="tab-panel"><pre class="full" id="gherkin"></pre></div>
+        <div id="tab-playwright" class="tab-panel"><pre class="full" id="playwright"></pre></div>
+        <div id="tab-coverage" class="tab-panel">
+          <div id="covTabBody"></div>
+          <iframe id="reportFrame" class="report-frame" title="Coverage report" style="display:none"></iframe>
+        </div>
+        <div id="tab-compliance" class="tab-panel"><div id="compTabBody"></div></div>
+        <div id="tab-logs" class="tab-panel"><div class="log-grid" id="logGrid"></div></div>
+      </section>
+    </main>
+
+    <aside class="history-panel">
+      <div class="history-head">
+        <h2>HISTORY</h2>
+        <div class="search-wrap">
+          <input type="search" id="historySearch" placeholder="Search history…" autocomplete="off"/>
+        </div>
+      </div>
+      <div id="historyList"></div>
+      <div class="history-foot">
+        <button type="button" class="btn-clear" id="clearHistory">🗑 Clear All History</button>
+      </div>
+    </aside>
+  </div>
+
+  <footer class="site-footer">
+    © 2026 Maritime QA Agentic Test Automation Assistant | ThinkPalm Technologies
+  </footer>
+
+  <script>
+    const DEFAULT_PORT = "8770";
+    const MAX_CHARS = 2000;
+    const API_BASE = (location.protocol === "http:" || location.protocol === "https:")
+      ? location.origin : ("http://127.0.0.1:" + DEFAULT_PORT);
+
+    let selectedRunId = null;
+    let allRuns = [];
+    let processingRunId = null;
+
+    async function apiFetch(path, options) {
+      const res = await fetch(API_BASE + path, options);
+      const text = await res.text();
+      if (!(res.headers.get("content-type") || "").includes("application/json")) {
+        throw new Error("Server not reachable. Run scripts\\run-ui.bat → http://127.0.0.1:8770");
+      }
+      const data = JSON.parse(text);
+      if (!res.ok) throw new Error(data.error || "HTTP " + res.status);
+      return data;
+    }
+
+    function esc(s) {
+      return String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;");
+    }
+
+    function updateCharCount() {
+      const n = document.getElementById("description").value.length;
+      const el = document.getElementById("charCount");
+      el.textContent = n + " / " + MAX_CHARS + " characters";
+      el.parentElement.classList.toggle("over", n >= MAX_CHARS);
+    }
+
+    function setWorkflowStep(n) {
+      for (let i = 1; i <= 4; i++) {
+        const el = document.getElementById("step-" + i);
+        el.classList.remove("done", "running");
+        const st = el.querySelector(".status");
+        if (i < n) { el.classList.add("done"); st.textContent = "Completed"; }
+        else if (i === n) { el.classList.add("running"); st.textContent = "Running…"; }
+        else { st.textContent = "Pending"; }
+      }
+    }
+
+    function setWorkflowDone() {
+      for (let i = 1; i <= 4; i++) {
+        const el = document.getElementById("step-" + i);
+        el.classList.remove("running");
+        el.classList.add("done");
+        el.querySelector(".status").textContent = "Completed";
+      }
+    }
+
+    function showTab(name) {
+      document.querySelectorAll(".output-tabs button").forEach(b =>
+        b.classList.toggle("active", b.dataset.tab === name));
+      document.querySelectorAll(".tab-panel").forEach(p => p.classList.remove("active"));
+      document.getElementById("tab-" + name).classList.add("active");
+    }
+
+    function renderDonutHtml(pct) {
+      const p = Math.max(0, Math.min(100, Number(pct) || 0));
+      return `<div class="donut" style="--pct:${p}"><span>${p}%</span></div>
+        <div style="text-align:center;font-size:0.72rem;font-weight:600;color:var(--ok)">Overall Coverage</div>`;
+    }
+
+    function renderRequirementsList(el, parsed) {
+      const reqs = (parsed && parsed.requirements) || [];
+      if (!reqs.length) { el.innerHTML = "<span style='color:var(--muted)'>—</span>"; return; }
+      el.innerHTML = reqs.slice(0, 8).map(r =>
+        `<div class="req-row"><span class="ico">📋</span><span><strong>${esc(r.id)}</strong> ${esc(r.title || "")}</span></div>`
+      ).join("");
+    }
+
+    function renderCompliance(el, data, withButtons) {
+      const flags = data.compliance_gap_count ?? 0;
+      const gaps = data.gaps || [];
+      const standards = [
+        { name: "STCW Certification Rules", ok: flags === 0 },
+        { name: "ISM Code Compliance", ok: flags <= 1 },
+        { name: "MLC Crew Requirements", ok: (data.coverage_percent || 0) >= 50 },
+      ];
+      let html = standards.map(s =>
+        `<div class="comp-row"><span>${s.ok ? "✅" : "⚠️"}</span> ${esc(s.name)} — ${s.ok ? "Compliant" : "Needs attention"}</div>`
+      ).join("");
+      gaps.slice(0, 3).forEach(g => { html += `<div class="comp-row"><span>⚠️</span> ${esc(g)}</div>`; });
+      if (withButtons) html += `<button type="button" class="btn-link" data-goto="compliance">View Compliance Details</button>`;
+      el.innerHTML = html;
+    }
+
+    function renderCoverageStats(el, data, withButton) {
+      const pct = data.coverage_percent ?? 0;
+      const reqs = (data.parsed_spec && data.parsed_spec.requirements) || [];
+      const total = reqs.length || "—";
+      const covered = Math.round((pct / 100) * (typeof total === "number" ? total : 0));
+      let html = renderDonutHtml(pct);
+      html += `<div class="stat-line">Total Requirements: ${total}</div>`;
+      html += `<div class="stat-line">Covered: ${covered}</div>`;
+      html += `<div class="stat-line">Compliance flags: ${data.compliance_gap_count ?? 0}</div>`;
+      if (withButton) html += `<button type="button" class="btn-link" data-goto="coverage">View Detailed Report</button>`;
+      el.innerHTML = html;
+    }
+
+    function renderResult(data) {
+      document.getElementById("resultsSection").classList.add("visible");
+      document.getElementById("reqEmpty").style.display = "none";
+      document.getElementById("overviewGrid").style.display = "grid";
+
+      const spec = data.parsed_spec || {};
+      renderRequirementsList(document.getElementById("ovReqs"), spec);
+      document.getElementById("ovGherkin").textContent = (data.gherkin || "—").slice(0, 600);
+      document.getElementById("ovPw").textContent = (data.playwright || "—").slice(0, 500);
+      renderCoverageStats(document.getElementById("ovCov"), data, true);
+      renderCompliance(document.getElementById("ovComp"), data, true);
+
+      document.getElementById("gherkin").textContent = data.gherkin || "";
+      document.getElementById("playwright").textContent = data.playwright || "";
+
+      const covTab = document.getElementById("covTabBody");
+      renderCoverageStats(covTab, data, false);
+      const gaps = (data.gaps || []).map(g => `<p class="gap-line">• ${esc(g)}</p>`).join("") || "<p style='color:var(--muted)'>No gaps.</p>";
+      covTab.innerHTML += gaps;
+
+      const frame = document.getElementById("reportFrame");
+      if (data.report_html) {
+        frame.style.display = "block";
+        frame.srcdoc = data.report_html;
+      }
+
+      const compTab = document.getElementById("compTabBody");
+      renderCompliance(compTab, data, false);
+
+      const logs = document.getElementById("logGrid");
+      const tc = data.tool_calls || [];
+      if (!tc.length) {
+        logs.innerHTML = "<span class='empty-state' style='padding:1rem'>No logs.</span>";
+      } else {
+        logs.innerHTML = tc.map(e => {
+          const label = e.type === "call" ? `${e.agent} → ${e.tool}` : `${e.agent} ← ${e.tool}`;
+          const ts = e.timestamp ? new Date(e.timestamp).toLocaleTimeString() : "";
+          return `<div class="log-chip"><strong>${esc(label)}</strong> <span style="color:var(--muted)">${ts}</span></div>`;
+        }).join("");
+      }
+
+      document.querySelectorAll(".btn-link[data-goto]").forEach(btn => {
+        btn.onclick = () => showTab(btn.dataset.goto);
+      });
+
+      setWorkflowDone();
+      processingRunId = null;
+      if (data.run_id) selectedRunId = data.run_id;
+      renderHistoryList();
+    }
+
+    function formatTitle(run) {
+      if (run.title && run.title.length > 3) return run.title;
+      const p = run.description_preview || "";
+      return p.slice(0, 48) + (p.length > 48 ? "…" : "") || run.run_id;
+    }
+
+    function renderHistoryList() {
+      const q = document.getElementById("historySearch").value.trim().toLowerCase();
+      const list = document.getElementById("historyList");
+      const filtered = allRuns.filter(r => {
+        if (!q) return true;
+        const hay = (formatTitle(r) + " " + (r.description_preview || "") + " " + (r.detected_domain || "")).toLowerCase();
+        return hay.includes(q);
+      });
+
+      if (!filtered.length) {
+        list.innerHTML = `<p style="padding:1rem;color:var(--muted);font-size:0.85rem;text-align:center">${q ? "No matches." : "No history yet."}</p>`;
+        return;
+      }
+
+      list.innerHTML = "";
+      filtered.forEach(run => {
+        const card = document.createElement("div");
+        card.className = "hist-card" + (run.run_id === selectedRunId ? " selected" : "");
+        const isProc = run.run_id === processingRunId;
+        const when = run.saved_at ? new Date(run.saved_at).toLocaleString() : run.run_id;
+        card.innerHTML = `
+          <button type="button" class="hist-del" title="Delete" data-id="${esc(run.run_id)}">🗑</button>
+          <h3>${esc(formatTitle(run))}</h3>
+          <span class="badge ${isProc ? "processing" : "completed"}">${isProc ? "Processing" : "Completed"}</span>
+          <div class="hist-time">${esc(when)}</div>`;
+        card.addEventListener("click", ev => {
+          if (ev.target.closest(".hist-del")) return;
+          openHistoryRun(run.run_id);
+        });
+        card.querySelector(".hist-del").addEventListener("click", ev => {
+          ev.stopPropagation();
+          deleteHistoryRun(run.run_id);
+        });
+        list.appendChild(card);
+      });
+    }
+
+    async function loadHistory() {
+      try {
+        const data = await apiFetch("/api/v1/runs");
+        allRuns = data.runs || [];
+        renderHistoryList();
+      } catch (e) {
+        document.getElementById("historyList").innerHTML =
+          `<p style="padding:1rem;color:var(--danger);font-size:0.8rem">${esc(e.message)}</p>`;
+      }
+    }
+
+    async function deleteHistoryRun(runId) {
+      if (!confirm("Delete this run from history?")) return;
+      try {
+        await apiFetch("/api/v1/runs/" + encodeURIComponent(runId), { method: "DELETE" });
+        if (selectedRunId === runId) selectedRunId = null;
+        await loadHistory();
+      } catch (e) { alert(e.message); }
+    }
+
+    async function clearAllHistory() {
+      if (!confirm("Clear all history? This cannot be undone.")) return;
+      try {
+        await apiFetch("/api/v1/runs", { method: "DELETE" });
+        selectedRunId = null;
+        await loadHistory();
+      } catch (e) { alert(e.message); }
+    }
+
+    async function openHistoryRun(runId) {
+      const btn = document.getElementById("runBtn");
+      btn.disabled = true;
+      try {
+        const data = await apiFetch("/api/v1/runs/" + encodeURIComponent(runId));
+        if (data.description) document.getElementById("description").value = data.description;
+        updateCharCount();
+        renderResult(data);
+        showTab("requirements");
+      } catch (e) { alert(e.message); }
+      finally { btn.disabled = false; }
+    }
+
+    async function runPipeline() {
+      const description = document.getElementById("description").value.trim();
+      if (!description) { alert("Please enter a feature description."); return; }
+
+      const btn = document.getElementById("runBtn");
+      btn.disabled = true;
+      btn.textContent = "⏳ Running…";
+      processingRunId = "pending";
+      setWorkflowStep(1);
+      const timers = [
+        setTimeout(() => setWorkflowStep(2), 600),
+        setTimeout(() => setWorkflowStep(3), 1400),
+        setTimeout(() => setWorkflowStep(4), 2200),
+      ];
+
+      try {
+        const data = await apiFetch("/api/v1/pipeline/run", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ description, domain: "auto", llm_provider: "groq" }),
+        });
+        renderResult(data);
+        await loadHistory();
+        showTab("requirements");
+      } catch (e) {
+        setWorkflowStep(0);
+        for (let i = 1; i <= 4; i++) {
+          document.getElementById("step-" + i).classList.remove("done", "running");
+          document.getElementById("step-" + i).querySelector(".status").textContent = "Pending";
+        }
+        processingRunId = null;
+        alert("Error: " + e.message);
+      } finally {
+        timers.forEach(clearTimeout);
+        btn.disabled = false;
+        btn.textContent = "🚀 RUN PIPELINE";
+        await loadHistory();
+      }
+    }
+
+    async function init() {
+      if (location.protocol !== "http:" && location.protocol !== "https:") {
+        const b = document.getElementById("serverBanner");
+        b.style.display = "block";
+        b.innerHTML = 'Open <a href="http://127.0.0.1:8770">http://127.0.0.1:8770</a> (run scripts\\run-ui.bat).';
+      }
+
+      document.getElementById("description").addEventListener("input", updateCharCount);
+      document.getElementById("runBtn").addEventListener("click", runPipeline);
+      document.querySelectorAll(".output-tabs button").forEach(b =>
+        b.addEventListener("click", () => showTab(b.dataset.tab)));
+      document.getElementById("historySearch").addEventListener("input", renderHistoryList);
+      document.getElementById("clearHistory").addEventListener("click", clearAllHistory);
+
+      document.getElementById("overviewGrid").style.display = "none";
+
+      try {
+        const samples = await apiFetch("/api/v1/samples");
+        const crew = (samples.samples || []).find(s => s.id === "crew-cert");
+        if (crew) {
+          document.getElementById("description").value =
+            "Notify crew members 30 days before certification expiry. Send email reminders to crew. " +
+            "Block voyage assignment if certification is expired. Escalate notification to fleet manager " +
+            "after 7 days if still not renewed.";
+        }
+      } catch (_) {}
+
+      updateCharCount();
+      await loadHistory();
+    }
+
+    init();
+  </script>
+</body>
+</html>
